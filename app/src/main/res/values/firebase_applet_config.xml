@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<resources>
+    <string name="firestore_database_id" translatable="false">ai-studio-android-agrisens-c90b9607-a9fc-4807-a89d-9c439c57e804</string>
+    <string name="recaptcha_site_key" translatable="false">6Le0EiguAAAAAMCIu7kaLwxnPoWFVITdqe_9P0K5</string>
+</resources>

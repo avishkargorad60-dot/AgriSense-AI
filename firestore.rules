@@ -1,0 +1,262 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global default-deny safety net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && (
+        (request.auth.token.email == 'avishkargorad60@gmail.com' && request.auth.token.email_verified == true) ||
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+      );
+    }
+
+    function isValidTimestamp(ts) {
+      return ts is timestamp && ts <= request.time;
+    }
+
+    function isValidFarmerProfile(data) {
+      return data.userId is string && data.userId.size() >= 1 && data.userId.size() <= 128 &&
+             data.fullName is string && data.fullName.size() >= 1 && data.fullName.size() <= 120 &&
+             data.mobile is string && data.mobile.size() <= 24 &&
+             data.email is string && data.email.size() <= 160 &&
+             data.state is string && data.state.size() >= 1 && data.state.size() <= 80 &&
+             data.district is string && data.district.size() >= 1 && data.district.size() <= 80 &&
+             data.village is string && data.village.size() <= 120 &&
+             data.preferredLanguage in ['en', 'hi', 'mr'] &&
+             data.farmSizeAcres is number && data.farmSizeAcres >= 0 && data.farmSizeAcres <= 100000 &&
+             data.mainCrops is string && data.mainCrops.size() <= 300 &&
+             data.soilType is string && data.soilType.size() >= 1 && data.soilType.size() <= 80 &&
+             data.role in ['FARMER', 'ADMIN'] &&
+             data.active is bool &&
+             isValidTimestamp(data.createdAt) &&
+             isValidTimestamp(data.updatedAt);
+    }
+
+    function isValidSoilAnalysis(data) {
+      return data.userId is string && data.userId == request.auth.uid &&
+             (!('imageUri' in data) || (data.imageUri is string && data.imageUri.size() <= 600)) &&
+             data.soilTypeInput is string && data.soilTypeInput.size() <= 100 &&
+             (!('phValue' in data) || (data.phValue is number && data.phValue >= 0 && data.phValue <= 14)) &&
+             data.moistureNote is string && data.moistureNote.size() <= 200 &&
+             data.predictedCategory is string && data.predictedCategory.size() <= 100 &&
+             data.confidenceNote is string && data.confidenceNote.size() <= 400 &&
+             data.cropRecommendations is string && data.cropRecommendations.size() <= 800 &&
+             data.improvementTips is string && data.improvementTips.size() <= 2500 &&
+             data.liveAi is bool &&
+             isValidTimestamp(data.createdAt);
+    }
+
+    function isValidDiseaseDetection(data) {
+      return data.userId is string && data.userId == request.auth.uid &&
+             (!('imageUri' in data) || (data.imageUri is string && data.imageUri.size() <= 600)) &&
+             data.cropName is string && data.cropName.size() >= 1 && data.cropName.size() <= 120 &&
+             data.symptomsNote is string && data.symptomsNote.size() <= 500 &&
+             data.predictedDisease is string && data.predictedDisease.size() <= 200 &&
+             data.confidenceNote is string && data.confidenceNote.size() <= 400 &&
+             data.symptomsCauses is string && data.symptomsCauses.size() <= 2500 &&
+             data.preventionSteps is string && data.preventionSteps.size() <= 2500 &&
+             data.treatmentGuidance is string && data.treatmentGuidance.size() <= 2500 &&
+             data.liveAi is bool &&
+             isValidTimestamp(data.createdAt);
+    }
+
+    function isValidCropRecommendation(data) {
+      return data.userId is string && data.userId == request.auth.uid &&
+             data.soilType is string && data.soilType.size() <= 100 &&
+             (!('ph' in data) || (data.ph is number && data.ph >= 0 && data.ph <= 14)) &&
+             data.temperatureC is number && data.temperatureC >= -20 && data.temperatureC <= 65 &&
+             data.rainfallMm is number && data.rainfallMm >= 0 && data.rainfallMm <= 10000 &&
+             data.season is string && data.season.size() <= 80 &&
+             data.state is string && data.state.size() <= 80 &&
+             data.district is string && data.district.size() <= 80 &&
+             data.irrigationType is string && data.irrigationType.size() <= 100 &&
+             data.farmSizeAcres is number && data.farmSizeAcres >= 0 && data.farmSizeAcres <= 100000 &&
+             data.topCropName is string && data.topCropName.size() <= 120 &&
+             data.topScore is int && data.topScore >= 0 && data.topScore <= 100 &&
+             data.recommendedCropsSummary is string && data.recommendedCropsSummary.size() <= 800 &&
+             isValidTimestamp(data.createdAt);
+    }
+
+    function isValidChatMessage(data) {
+      return data.userId is string && data.userId == request.auth.uid &&
+             data.role in ['user', 'assistant'] &&
+             data.message is string && data.message.size() >= 1 && data.message.size() <= 8000 &&
+             data.followUps is string && data.followUps.size() <= 1000 &&
+             data.liveAi is bool &&
+             isValidTimestamp(data.createdAt);
+    }
+
+    function isValidWeatherAdvisory(data) {
+      return data.userId is string && data.userId == request.auth.uid &&
+             data.locationName is string && data.locationName.size() >= 1 && data.locationName.size() <= 160 &&
+             data.temperatureC is number && data.temperatureC >= -20 && data.temperatureC <= 65 &&
+             data.humidityPct is int && data.humidityPct >= 0 && data.humidityPct <= 100 &&
+             data.windKmh is number && data.windKmh >= 0 && data.windKmh <= 300 &&
+             data.rainfallMm is number && data.rainfallMm >= 0 && data.rainfallMm <= 2000 &&
+             data.advisorySummary is string && data.advisorySummary.size() <= 2000 &&
+             isValidTimestamp(data.createdAt);
+    }
+
+    function isValidSavedCrop(data) {
+      return data.userId is string && data.userId == request.auth.uid &&
+             data.cropName is string && data.cropName.size() >= 1 && data.cropName.size() <= 120 &&
+             data.season is string && data.season.size() <= 80 &&
+             data.notes is string && data.notes.size() <= 500 &&
+             isValidTimestamp(data.createdAt);
+    }
+
+    function isValidActivityLog(data) {
+      return data.userId is string && data.userId == request.auth.uid &&
+             data.module is string && data.module.size() >= 1 && data.module.size() <= 80 &&
+             data.actionTitle is string && data.actionTitle.size() >= 1 && data.actionTitle.size() <= 160 &&
+             data.details is string && data.details.size() <= 500 &&
+             isValidTimestamp(data.createdAt);
+    }
+
+    match /admins/{adminUid} {
+      allow get: if isSignedIn() && isValidId(adminUid) && (request.auth.uid == adminUid || isAdmin());
+      allow list, write: if false;
+    }
+
+    match /users/{userId} {
+      allow get: if isSignedIn() && isValidId(userId) && (isOwner(userId) || isAdmin());
+      allow list: if isAdmin();
+
+      allow create: if isSignedIn() &&
+                       isValidId(userId) &&
+                       isOwner(userId) &&
+                       incoming().userId == request.auth.uid &&
+                       incoming().role == 'FARMER' &&
+                       incoming().active == true &&
+                       incoming().keys().hasAll(['userId', 'fullName', 'mobile', 'email', 'state', 'district', 'village', 'preferredLanguage', 'farmSizeAcres', 'mainCrops', 'soilType', 'role', 'active', 'createdAt', 'updatedAt']) &&
+                       incoming().keys().hasOnly(['userId', 'fullName', 'mobile', 'email', 'state', 'district', 'village', 'preferredLanguage', 'farmSizeAcres', 'mainCrops', 'soilType', 'role', 'active', 'createdAt', 'updatedAt']) &&
+                       isValidFarmerProfile(incoming());
+
+      allow update: if isSignedIn() &&
+                       isValidId(userId) &&
+                       isValidFarmerProfile(incoming()) &&
+                       incoming().userId == existing().userId &&
+                       incoming().createdAt == existing().createdAt && (
+                         (isOwner(userId) &&
+                          incoming().role == existing().role &&
+                          incoming().active == existing().active &&
+                          incoming().diff(existing()).affectedKeys().hasOnly(['fullName', 'mobile', 'email', 'state', 'district', 'village', 'preferredLanguage', 'farmSizeAcres', 'mainCrops', 'soilType', 'updatedAt'])) ||
+                         (isAdmin() &&
+                          incoming().diff(existing()).affectedKeys().hasOnly(['active', 'role', 'updatedAt']))
+                       );
+
+      allow delete: if isSignedIn() && isValidId(userId) && (isOwner(userId) || isAdmin());
+
+      match /soil_analyses/{recordId} {
+        allow get: if isSignedIn() && isValidId(userId) && isValidId(recordId) && (isOwner(userId) || isAdmin());
+        allow list: if isSignedIn() && isValidId(userId) && (isOwner(userId) || isAdmin());
+        allow create: if isSignedIn() && isValidId(userId) && isValidId(recordId) && isOwner(userId) &&
+                         incoming().keys().hasAll(['userId', 'soilTypeInput', 'moistureNote', 'predictedCategory', 'confidenceNote', 'cropRecommendations', 'improvementTips', 'liveAi', 'createdAt']) &&
+                         incoming().keys().hasOnly(['userId', 'imageUri', 'soilTypeInput', 'phValue', 'moistureNote', 'predictedCategory', 'confidenceNote', 'cropRecommendations', 'improvementTips', 'liveAi', 'createdAt']) &&
+                         isValidSoilAnalysis(incoming());
+        allow update: if false;
+        allow delete: if isSignedIn() && isValidId(userId) && isValidId(recordId) && isOwner(userId);
+      }
+
+      match /disease_detections/{recordId} {
+        allow get: if isSignedIn() && isValidId(userId) && isValidId(recordId) && (isOwner(userId) || isAdmin());
+        allow list: if isSignedIn() && isValidId(userId) && (isOwner(userId) || isAdmin());
+        allow create: if isSignedIn() && isValidId(userId) && isValidId(recordId) && isOwner(userId) &&
+                         incoming().keys().hasAll(['userId', 'cropName', 'symptomsNote', 'predictedDisease', 'confidenceNote', 'symptomsCauses', 'preventionSteps', 'treatmentGuidance', 'liveAi', 'createdAt']) &&
+                         incoming().keys().hasOnly(['userId', 'imageUri', 'cropName', 'symptomsNote', 'predictedDisease', 'confidenceNote', 'symptomsCauses', 'preventionSteps', 'treatmentGuidance', 'liveAi', 'createdAt']) &&
+                         isValidDiseaseDetection(incoming());
+        allow update: if false;
+        allow delete: if isSignedIn() && isValidId(userId) && isValidId(recordId) && isOwner(userId);
+      }
+
+      match /crop_recommendations/{recordId} {
+        allow get: if isSignedIn() && isValidId(userId) && isValidId(recordId) && (isOwner(userId) || isAdmin());
+        allow list: if isSignedIn() && isValidId(userId) && (isOwner(userId) || isAdmin());
+        allow create: if isSignedIn() && isValidId(userId) && isValidId(recordId) && isOwner(userId) &&
+                         incoming().keys().hasAll(['userId', 'soilType', 'temperatureC', 'rainfallMm', 'season', 'state', 'district', 'irrigationType', 'farmSizeAcres', 'topCropName', 'topScore', 'recommendedCropsSummary', 'createdAt']) &&
+                         incoming().keys().hasOnly(['userId', 'soilType', 'ph', 'temperatureC', 'rainfallMm', 'season', 'state', 'district', 'irrigationType', 'farmSizeAcres', 'topCropName', 'topScore', 'recommendedCropsSummary', 'createdAt']) &&
+                         isValidCropRecommendation(incoming());
+        allow update: if false;
+        allow delete: if isSignedIn() && isValidId(userId) && isValidId(recordId) && isOwner(userId);
+      }
+
+      match /chat_messages/{recordId} {
+        allow get: if isSignedIn() && isValidId(userId) && isValidId(recordId) && (isOwner(userId) || isAdmin());
+        allow list: if isSignedIn() && isValidId(userId) && (isOwner(userId) || isAdmin());
+        allow create: if isSignedIn() && isValidId(userId) && isValidId(recordId) && isOwner(userId) &&
+                         incoming().keys().hasAll(['userId', 'role', 'message', 'followUps', 'liveAi', 'createdAt']) &&
+                         incoming().keys().hasOnly(['userId', 'role', 'message', 'followUps', 'liveAi', 'createdAt']) &&
+                         isValidChatMessage(incoming());
+        allow update: if false;
+        allow delete: if isSignedIn() && isValidId(userId) && isValidId(recordId) && isOwner(userId);
+      }
+
+      match /weather_advisories/{recordId} {
+        allow get: if isSignedIn() && isValidId(userId) && isValidId(recordId) && (isOwner(userId) || isAdmin());
+        allow list: if isSignedIn() && isValidId(userId) && (isOwner(userId) || isAdmin());
+        allow create: if isSignedIn() && isValidId(userId) && isValidId(recordId) && isOwner(userId) &&
+                         incoming().keys().hasAll(['userId', 'locationName', 'temperatureC', 'humidityPct', 'windKmh', 'rainfallMm', 'advisorySummary', 'createdAt']) &&
+                         incoming().keys().hasOnly(['userId', 'locationName', 'temperatureC', 'humidityPct', 'windKmh', 'rainfallMm', 'advisorySummary', 'createdAt']) &&
+                         isValidWeatherAdvisory(incoming());
+        allow update: if false;
+        allow delete: if isSignedIn() && isValidId(userId) && isValidId(recordId) && isOwner(userId);
+      }
+
+      match /saved_crops/{recordId} {
+        allow get: if isSignedIn() && isValidId(userId) && isValidId(recordId) && (isOwner(userId) || isAdmin());
+        allow list: if isSignedIn() && isValidId(userId) && (isOwner(userId) || isAdmin());
+        allow create: if isSignedIn() && isValidId(userId) && isValidId(recordId) && isOwner(userId) &&
+                         incoming().keys().hasAll(['userId', 'cropName', 'season', 'notes', 'createdAt']) &&
+                         incoming().keys().hasOnly(['userId', 'cropName', 'season', 'notes', 'createdAt']) &&
+                         isValidSavedCrop(incoming());
+        allow update: if false;
+        allow delete: if isSignedIn() && isValidId(userId) && isValidId(recordId) && isOwner(userId);
+      }
+
+      match /activity_logs/{recordId} {
+        allow get: if isSignedIn() && isValidId(userId) && isValidId(recordId) && (isOwner(userId) || isAdmin());
+        allow list: if isSignedIn() && isValidId(userId) && (isOwner(userId) || isAdmin());
+        allow create: if isSignedIn() && isValidId(userId) && isValidId(recordId) && isOwner(userId) &&
+                         incoming().keys().hasAll(['userId', 'module', 'actionTitle', 'details', 'createdAt']) &&
+                         incoming().keys().hasOnly(['userId', 'module', 'actionTitle', 'details', 'createdAt']) &&
+                         isValidActivityLog(incoming());
+        allow update: if false;
+        allow delete: if isSignedIn() && isValidId(userId) && isValidId(recordId) && isOwner(userId);
+      }
+    }
+
+    match /platform_activity/{logId} {
+      allow get, list: if isAdmin();
+      allow create: if isSignedIn() &&
+                       isValidId(logId) &&
+                       incoming().keys().hasAll(['userId', 'module', 'actionTitle', 'details', 'createdAt']) &&
+                       incoming().keys().hasOnly(['userId', 'module', 'actionTitle', 'details', 'createdAt']) &&
+                       isValidActivityLog(incoming());
+      allow update, delete: if isAdmin();
+    }
+  }
+}

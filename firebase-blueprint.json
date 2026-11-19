@@ -1,0 +1,181 @@
+{
+  "entities": {
+    "FarmerProfile": {
+      "title": "Farmer Profile",
+      "description": "Authenticated farmer profile and farm metadata",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "fullName": { "type": "string" },
+        "mobile": { "type": "string" },
+        "email": { "type": "string" },
+        "state": { "type": "string" },
+        "district": { "type": "string" },
+        "village": { "type": "string" },
+        "preferredLanguage": { "type": "string", "enum": ["en", "hi", "mr"] },
+        "farmSizeAcres": { "type": "number" },
+        "mainCrops": { "type": "string" },
+        "soilType": { "type": "string" },
+        "role": { "type": "string", "enum": ["FARMER", "ADMIN"] },
+        "active": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "fullName", "mobile", "email", "state", "district", "village", "preferredLanguage", "farmSizeAcres", "mainCrops", "soilType", "role", "active", "createdAt", "updatedAt"]
+    },
+    "SoilAnalysis": {
+      "title": "Soil Analysis Record",
+      "description": "AI soil diagnostic result",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "imageUri": { "type": "string" },
+        "soilTypeInput": { "type": "string" },
+        "phValue": { "type": "number" },
+        "moistureNote": { "type": "string" },
+        "predictedCategory": { "type": "string" },
+        "confidenceNote": { "type": "string" },
+        "cropRecommendations": { "type": "string" },
+        "improvementTips": { "type": "string" },
+        "liveAi": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "soilTypeInput", "moistureNote", "predictedCategory", "confidenceNote", "cropRecommendations", "improvementTips", "liveAi", "createdAt"]
+    },
+    "DiseaseDetection": {
+      "title": "Crop Disease Detection Record",
+      "description": "AI leaf/crop disease inspection result",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "imageUri": { "type": "string" },
+        "cropName": { "type": "string" },
+        "symptomsNote": { "type": "string" },
+        "predictedDisease": { "type": "string" },
+        "confidenceNote": { "type": "string" },
+        "symptomsCauses": { "type": "string" },
+        "preventionSteps": { "type": "string" },
+        "treatmentGuidance": { "type": "string" },
+        "liveAi": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "cropName", "symptomsNote", "predictedDisease", "confidenceNote", "symptomsCauses", "preventionSteps", "treatmentGuidance", "liveAi", "createdAt"]
+    },
+    "CropRecommendation": {
+      "title": "Crop Recommendation Record",
+      "description": "Smart crop recommendation calculation snapshot",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "soilType": { "type": "string" },
+        "ph": { "type": "number" },
+        "temperatureC": { "type": "number" },
+        "rainfallMm": { "type": "number" },
+        "season": { "type": "string" },
+        "state": { "type": "string" },
+        "district": { "type": "string" },
+        "irrigationType": { "type": "string" },
+        "farmSizeAcres": { "type": "number" },
+        "topCropName": { "type": "string" },
+        "topScore": { "type": "integer" },
+        "recommendedCropsSummary": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "soilType", "temperatureC", "rainfallMm", "season", "state", "district", "irrigationType", "farmSizeAcres", "topCropName", "topScore", "recommendedCropsSummary", "createdAt"]
+    },
+    "ChatMessage": {
+      "title": "AI Assistant Chat Message",
+      "description": "Conversational message in AI Mitra",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "role": { "type": "string", "enum": ["user", "assistant"] },
+        "message": { "type": "string" },
+        "followUps": { "type": "string" },
+        "liveAi": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "role", "message", "followUps", "liveAi", "createdAt"]
+    },
+    "WeatherAdvisory": {
+      "title": "Weather Advisory Record",
+      "description": "Saved Open-Meteo weather snapshot and generated advisory",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "locationName": { "type": "string" },
+        "temperatureC": { "type": "number" },
+        "humidityPct": { "type": "integer" },
+        "windKmh": { "type": "number" },
+        "rainfallMm": { "type": "number" },
+        "advisorySummary": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "locationName", "temperatureC", "humidityPct", "windKmh", "rainfallMm", "advisorySummary", "createdAt"]
+    },
+    "SavedCrop": {
+      "title": "Saved Crop",
+      "description": "Farmer saved crop bookmark",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "cropName": { "type": "string" },
+        "season": { "type": "string" },
+        "notes": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "cropName", "season", "notes", "createdAt"]
+    },
+    "ActivityLog": {
+      "title": "Activity Log",
+      "description": "Farmer or platform activity audit entry",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "module": { "type": "string" },
+        "actionTitle": { "type": "string" },
+        "details": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "module", "actionTitle", "details", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/FarmerProfile" },
+      "description": "Authenticated farmer profile documents"
+    },
+    "/users/{userId}/soil_analyses/{recordId}": {
+      "schema": { "$ref": "#/entities/SoilAnalysis" },
+      "description": "Farmer soil analysis records"
+    },
+    "/users/{userId}/disease_detections/{recordId}": {
+      "schema": { "$ref": "#/entities/DiseaseDetection" },
+      "description": "Farmer crop disease detection records"
+    },
+    "/users/{userId}/crop_recommendations/{recordId}": {
+      "schema": { "$ref": "#/entities/CropRecommendation" },
+      "description": "Farmer smart crop recommendations"
+    },
+    "/users/{userId}/chat_messages/{recordId}": {
+      "schema": { "$ref": "#/entities/ChatMessage" },
+      "description": "Farmer AI Mitra chat messages"
+    },
+    "/users/{userId}/weather_advisories/{recordId}": {
+      "schema": { "$ref": "#/entities/WeatherAdvisory" },
+      "description": "Farmer weather advisory history"
+    },
+    "/users/{userId}/saved_crops/{recordId}": {
+      "schema": { "$ref": "#/entities/SavedCrop" },
+      "description": "Farmer saved crops"
+    },
+    "/users/{userId}/activity_logs/{recordId}": {
+      "schema": { "$ref": "#/entities/ActivityLog" },
+      "description": "Farmer personal activity logs"
+    },
+    "/platform_activity/{logId}": {
+      "schema": { "$ref": "#/entities/ActivityLog" },
+      "description": "Admin-readable platform activity audit stream"
+    }
+  }
+}

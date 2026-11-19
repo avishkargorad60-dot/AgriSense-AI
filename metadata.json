@@ -1,0 +1,6 @@
+{
+  "name": "AgriSense AI",
+  "description": "Smart Farmer Assistant for Indian agriculture with AI crop & soil diagnostics, live weather, mandi market prices, and multilingual guidance.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
